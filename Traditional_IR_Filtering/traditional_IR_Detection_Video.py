@@ -9,10 +9,11 @@ from skimage.transform import hough_circle, hough_circle_peaks
 
 data_dict = {"Distance": [], "Pixel Counts": [], "Eccentricities": [], "Longest Rows": []
              , "Longest Columns": []}
+distance_dict = {}
 
-#video_path = "./Videos/video_15_out.avi"
+video_path = "./Videos/video_15_out.avi"
 #video_path = "./Videos/video_10metres.mp4"
-video_path = "./Videos/video_20metres_out.avi"
+#video_path = "./Videos/video_20metres_out.avi"
 
 cap = cv2.VideoCapture(video_path)
 
@@ -168,13 +169,20 @@ def get_distance_from_path(video_path):
 def store_pixel_data(distance, pix_counts, eccentricities, longest_rows, 
                      longest_columns):
     """Store the data collected from the segmented image frames."""
-    
-    #Store the data to a dictionary
+    #Populates distance_dict
+    distance_dict["Distance"] = distance
+    distance_dict["Pixel Counts"] = pix_counts
+    distance_dict["Eccentricities"] = eccentricities
+    distance_dict["Longest Rows"] = longest_rows
+    distance_dict["Longest Columns"] = longest_columns
+
+    #Store the data to a dictionary to be written to the csv
     data_dict["Distance"].append(distance)
     data_dict["Pixel Counts"].append(pix_counts)
     data_dict["Eccentricities"].append(eccentricities)
     data_dict["Longest Rows"].append(longest_rows)
     data_dict["Longest Columns"].append(longest_columns)
+
 
 def write_to_csv(distance, data_dict):
     """Writes the collected data to a csv file."""
@@ -184,8 +192,16 @@ def write_to_csv(distance, data_dict):
     if distance == "10m":
         df.to_csv('img_data.csv', index=False)
     #Appends to the csv file instead of overwriting if the distance is not 10m
-    elif (distance != "10m") and distance not in data_dict[distance]:
-        df.to_csv('img_data.csv', mode='a', index=False, header=False)
+    else:
+        #Check if the row is already in the file
+        existing_file = pd.read_csv('img_data.csv')
+        existing_data = existing_file.to_dict(orient='records')
+
+        #Writes to the csv if the row does not exist
+        write_condition = distance_dict not in existing_data
+        print(write_condition)
+        if (write_condition):
+            df.to_csv('img_data.csv', mode='a', index=False, header=False)
     
     
 
@@ -257,6 +273,7 @@ def main():
     #Store the pixel data and write it to a csv file
     store_pixel_data(distance, pixel_counts, eccentricities, longest_rows, longest_columns)
     write_to_csv(distance, data_dict)
+    
     
     # Compute and print the average frame processing time
     if processing_times:
