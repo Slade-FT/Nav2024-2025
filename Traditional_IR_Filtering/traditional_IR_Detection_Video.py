@@ -7,7 +7,6 @@ import pandas as pd
 from skimage.measure import label, regionprops
 from skimage.transform import hough_circle, hough_circle_peaks
 
-count_pixels
 distance_dict = {}
 
 video_path = "./Traditional_IR_Filtering/Videos/video_15_out.avi"
