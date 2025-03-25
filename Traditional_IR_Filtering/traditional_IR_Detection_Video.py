@@ -7,13 +7,12 @@ import pandas as pd
 from skimage.measure import label, regionprops
 from skimage.transform import hough_circle, hough_circle_peaks
 
-data_dict = {"Distance": [], "Pixel Counts": [], "Eccentricities": [], "Longest Rows": []
-             , "Longest Columns": []}
+count_pixels
 distance_dict = {}
 
-video_path = "./Videos/video_15_out.avi"
-#video_path = "./Videos/video_10metres.mp4"
-#video_path = "./Videos/video_20metres_out.avi"
+video_path = "./Traditional_IR_Filtering/Videos/video_15_out.avi"
+#video_path = "./Traditional_IR_Filtering/Videos/video_10metres.mp4"
+#video_path = "./Traditional_IR_Filtering/Videos/video_20metres_out.avi"Traditional_IR_Filtering
 
 cap = cv2.VideoCapture(video_path)
 
@@ -169,39 +168,55 @@ def get_distance_from_path(video_path):
 def store_pixel_data(distance, pix_counts, eccentricities, longest_rows, 
                      longest_columns):
     """Store the data collected from the segmented image frames."""
-    #Populates distance_dict
-    distance_dict["Distance"] = distance
-    distance_dict["Pixel Counts"] = pix_counts
-    distance_dict["Eccentricities"] = eccentricities
-    distance_dict["Longest Rows"] = longest_rows
-    distance_dict["Longest Columns"] = longest_columns
-
-    #Store the data to a dictionary to be written to the csv
-    data_dict["Distance"].append(distance)
-    data_dict["Pixel Counts"].append(pix_counts)
-    data_dict["Eccentricities"].append(eccentricities)
-    data_dict["Longest Rows"].append(longest_rows)
-    data_dict["Longest Columns"].append(longest_columns)
+    
+    data_dict["Distance"] = distance
+    data_dict["Pixel Counts"] = pix_counts
+    data_dict["Eccentricities"] = eccentricities
+    data_dict["Longest Rows"] = longest_rows
+    data_dict["Longest Columns"] = longest_columns
 
 
 def write_to_csv(distance, data_dict):
-    """Writes the collected data to a csv file."""
+   """Writes the collected data to a csv file."""
+    #Runs the code if the file exists
+    try:
+        with open('img_data.csv', 'r', newline='') as csv_file:
+            add_condition = True
+            no_header = False
 
-    df = pd.DataFrame(data_dict)
-    #Creates the csv file containing data for the starting distance of 10m
-    if distance == "10m":
-        df.to_csv('img_data.csv', index=False)
-    #Appends to the csv file instead of overwriting if the distance is not 10m
-    else:
-        #Check if the row is already in the file
-        existing_file = pd.read_csv('img_data.csv')
-        existing_data = existing_file.to_dict(orient='records')
+            #Checks if there is a header in the file
+            header = csv_file.readline()
+            if len(header) == 0:
+                no_header = True
+            
+            #Checks if there already exists pixel data for a specific distance
+            else:
+                header = ["Distance", "Pixel Counts", "Eccentricities", "Longest Rows", "Longest Columns"]
+                reader = csv.DictReader(csv_file, fieldnames=header)
+                for row in reader:
+                    if data_dict == row:
+                        add_condition = False
+                        break
+        
+        #Adds a header if there is none
+        if (no_header):
+            csv_file = open('img_data.csv', mode='w')
+            header = ["Distance", "Pixel Counts", "Eccentricities", "Longest Rows", "Longest Columns"]
+            writer = csv.writer(csv_file)
+            writer.writerow(header)
 
-        #Writes to the csv if the row does not exist
-        write_condition = distance_dict not in existing_data
-        print(write_condition)
-        if (write_condition):
-            df.to_csv('img_data.csv', mode='a', index=False, header=False)
+        #Appends pixel data for a specific distance if it does not exist in the csv already       
+        if (add_condition):
+            with open('img_data.csv', 'a', newline='') as csv_file:
+                fieldnames = ["Distance", "Pixel Counts", "Eccentricities", "Longest Rows", 
+                          "Longest Columns"]
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                writer.writerow(data_dict)
+    
+    except FileNotFoundError:
+        print("File not found.")
+    
+    csv_file.close()
     
     
 
