@@ -6,9 +6,9 @@ import statistics
 from skimage.measure import label, regionprops
 from skimage.transform import hough_circle, hough_circle_peaks
 
-#video_path = "./Traditional_IR_Filtering/Videos/video_15_out.avi"
+video_path = "./Traditional_IR_Filtering/Videos/video_15_out.avi"
 #video_path = "./Traditional_IR_Filtering/Videos/video_10metres.mp4"
-video_path = "./Traditional_IR_Filtering/Videos/video_20metres_out.avi"
+#video_path = "./Traditional_IR_Filtering/Videos/video_20metres_out.avi"
 
 cap = cv2.VideoCapture(video_path)
 
